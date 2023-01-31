@@ -1,11 +1,11 @@
 import openpyxl, json, datetime, re, csv
 from venmo_api import Client
+from dotenv import dotenv_values
 
-# Read credentials from cred.json
-with open('config.json') as f:
-    config = json.load(f)
+# Read credentials from environment
+config = dotenv_values(".env")
 
-VENMO_AT = config["venmo_at"]
+VENMO_AT = config["VENMO_AT"]
 VENMO_PAY = "VENMO PAYMENT"
 VENMO_RECIEVE = "VENMO CASHOUT"
 SEND_TIME_THRESHOLD = 86400.0
@@ -75,17 +75,12 @@ print(f"Updated description to {pay_count} pay / {recieve_count} recieve venmo t
 
 print(f"Updated label to {pay_rep_count} venmo pay transactions\n{DIV}\n")
 
-    # elif re.search(f'^({VENMO_RECIEVE}).*$', sheet.cell(row = n + 1, column = 2).value):
-    #   t_date = sheet.cell(row = n + 1, column = 1).value.strptime("%m/%#d/%Y")
-    #     for t in reduced_transactions:
-    #         if abs(t_date - t[5]) < TIME_THRESHOLD:
+# Add header
+reduced_transactions = [("Date", "From", "To", "Note", "Amount")] + reduced_transactions
 
-# # Add header
-# reduced_transactions = [("Date", "From", "To", "Note", "Amount")] + reduced_transactions
-
-# # Fill in transaction data in workbook
-# sheet = wb["Aggregation"]
-# for i in range(len(reduced_transactions)):
-#     for j in range(len(reduced_transactions[i]) - 1):
-#         sheet.cell(row = i + 1, column = j + 4).value = reduced_transactions[i][j]
+# Fill in transaction data in workbook
+sheet = wb["Aggregation"]
+for i in range(len(reduced_transactions)):
+    for j in range(len(reduced_transactions[i]) - 1):
+        sheet.cell(row = i + 1, column = j + 4).value = reduced_transactions[i][j]
 wb.save(WB_NAME)

@@ -1,6 +1,6 @@
-config.json
 desc_rep.txt
 label_rep.txt
 transactions.csv
 transactions_x.xlsx
 venmo_rep.txt
+.env

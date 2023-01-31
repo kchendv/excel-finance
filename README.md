@@ -13,7 +13,7 @@ This project is a financial data organization utility built on top of Mint's fin
 
 Required files:
 - `transactions.csv`, obtained from Mint as input
-- `config.json` with field `venmo_at` (venmo access token)
+- `.env` with field `venmo_at` (venmo access token)
 - `label_rep.txt` a tab separated list of the format `old_category` / `new_category`
 - `desc_rep.txt` a tab separated list of the format `description_regex` / `new_category`
 - `venmo_rep.txt` a tab separated list of the format `description_regex` / `new_category`

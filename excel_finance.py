@@ -114,4 +114,5 @@ for row in range(1,20):
 print(f"Added aggregation\n{DIV}\n")
 
 print(f"Cleaning complete\n{DIV}\n")
+
 workbook.save(OUTPUT_FILE)
