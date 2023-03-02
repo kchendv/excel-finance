@@ -13,6 +13,7 @@ VENMO_PAY = "VENMO PAYMENT"
 VENMO_RECIEVE = "VENMO CASHOUT"
 SEND_TIME_THRESHOLD = 86400.0
 REC_TIME_THRESHOLD = 345600.0
+MY_NAME = config["MY_NAME"]
 
 # Venmo access instance
 venmo = Client(access_token = VENMO_AT)
@@ -20,15 +21,16 @@ venmo = Client(access_token = VENMO_AT)
 me_user = venmo.user.get_my_profile()
 
 # Get / parse transactions
-transactions = venmo.user.get_user_transactions(user = me_user) 
+transactions = venmo.user.get_user_transactions(user = me_user, limit = 40) 
 
 reduced_transactions = [(
     datetime.datetime.fromtimestamp(t.date_completed).strftime("%m/%#d/%Y"),
-    t.actor.display_name,
-    t.target.display_name,
+    t.actor.display_name if t.payment_type == "pay" else t.target.display_name,
+    t.target.display_name if t.payment_type == "pay" else t.actor.display_name,
     t.note,
     t.amount,
-    datetime.datetime.fromtimestamp(t.date_completed))
+    datetime.datetime.fromtimestamp(t.date_completed),
+    True)
     for t in transactions]
 
 # Create venmo note category map
@@ -49,9 +51,11 @@ for n in range(sheet.max_row - 1):
         t_date = datetime.datetime.strptime(sheet.cell(row = n + 1, column = 1).value, "%m/%d/%Y")
         t_amount = float(sheet.cell(row = n + 1, column = 3).value)
         for t in reduced_transactions:
-            if abs((t_date - t[5]).total_seconds()) < SEND_TIME_THRESHOLD and t_amount == t[4]:
+            if abs((t_date - t[5]).total_seconds()) < SEND_TIME_THRESHOLD and t_amount == t[4] and t[1] == MY_NAME and t[6]:
                 # Replace message
                 sheet.cell(row = n + 1, column = 2).value = f"VENMO PAY {t[2]} : [{t[3]}]"
+                # Set flag to false to prevent double tagging
+                t[6] = False
                 pay_count += 1
 
                 # Attemp label matching
@@ -66,10 +70,12 @@ for n in range(sheet.max_row - 1):
         t_date = datetime.datetime.strptime(sheet.cell(row = n + 1, column = 1).value, "%m/%d/%Y")
         t_amount = -float(sheet.cell(row = n + 1, column = 3).value)
         for t in reduced_transactions:
-            if  abs((t_date - t[5]).total_seconds()) < REC_TIME_THRESHOLD and t_amount == t[4]:
+            if  abs((t_date - t[5]).total_seconds()) < REC_TIME_THRESHOLD and t_amount == t[4] and t[2] == MY_NAME and t[6]:
                 # Replace message
                 sheet.cell(row = n + 1, column = 2).value = f"VENMO RECIEVE {t[1]} : [{t[3]}]"
                 recieve_count += 1
+                # Set flag to false to prevent double tagging
+                t[6] = False
                 break
 
 print(f"Updated description to {pay_count} pay / {recieve_count} recieve venmo transactions\n{DIV}\n")
@@ -82,6 +88,6 @@ reduced_transactions = [("Date", "From", "To", "Note", "Amount")] + reduced_tran
 # Fill in transaction data in workbook
 sheet = wb["Aggregation"]
 for i in range(len(reduced_transactions)):
-    for j in range(len(reduced_transactions[i]) - 1):
+    for j in range(len(reduced_transactions[i]) - 2):
         sheet.cell(row = i + 1, column = j + 4).value = reduced_transactions[i][j]
 wb.save(WB_NAME)
