@@ -6,12 +6,13 @@ from dotenv import dotenv_values
 config = dotenv_values(".env")
 
 VENMO_AT = config["VENMO_AT"]
+WB_NAME = config["WB_NAME"]
+VENMO_REP_FILE = config["VENMO_REP_FILE"]
+DIV = config["DIV"]
 VENMO_PAY = "VENMO PAYMENT"
 VENMO_RECIEVE = "VENMO CASHOUT"
 SEND_TIME_THRESHOLD = 86400.0
 REC_TIME_THRESHOLD = 345600.0
-WB_NAME = "transactions_x.xlsx"
-DIV = "--------------------------------"
 
 # Venmo access instance
 venmo = Client(access_token = VENMO_AT)
@@ -32,7 +33,7 @@ reduced_transactions = [(
 
 # Create venmo note category map
 venmo_rep = dict()
-with open("venmo_rep.txt") as f:
+with open(VENMO_REP_FILE) as f:
     reader = csv.reader(f, delimiter = "\t")
     for row in reader:
         venmo_rep[row[0]] = row[1]
@@ -56,7 +57,7 @@ for n in range(sheet.max_row - 1):
                 # Attemp label matching
                 for pattern, category in venmo_rep.items():
                     if re.search(f'^(.* )*({pattern}).*$', t[3]):
-                        sheet.cell(row = n + 1, column = 4).value = category
+                        sheet.cell(row = n + 1, column = 5).value = category
                         pay_rep_count += 1
                         break
                 break

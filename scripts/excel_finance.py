@@ -1,15 +1,19 @@
-import openpyxl, re, csv, argparse
+import openpyxl, re, csv
+from dotenv import dotenv_values
+
+# Read credentials from environment
+config = dotenv_values(".env")
 
 # Parse arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("input_file", nargs='?', default="transactions")
-ap.add_argument("label_rep", nargs='?', default="label_rep")
-ap.add_argument("desc_rep", nargs='?', default="desc_rep")
-args= vars(ap.parse_args())
-INPUT_FILE = args["input_file"] + ".csv"
-LABEL_REP_FILE = args["label_rep"] + ".txt"
-DESC_REP_FILE = args["desc_rep"] + ".txt"
-OUTPUT_FILE = args["input_file"] + "_x.xlsx"
+# ap = argparse.ArgumentParser()
+# ap.add_argument("input_file", nargs='?', default="transactions")
+# ap.add_argument("label_rep", nargs='?', default="label_rep")
+# ap.add_argument("desc_rep", nargs='?', default="desc_rep")
+# args= vars(ap.parse_args())
+INPUT_FILE = config["INPUT_FILE"]
+LABEL_REP_FILE = config["LABEL_REP_FILE"]
+DESC_REP_FILE = config["DESC_REP_FILE"]
+WB_NAME = config["WB_NAME"]
 MONTH_END_GUARD = "[END]"
 CREDIT_ACCOUNT = "credit"
 UNCAT_LABEL = "[UNCAT]"
@@ -105,7 +109,7 @@ ROWS = sheet.max_row
 sheet.delete_cols(3)
 
 # Add aggregation sheet
-agg_sheet= workbook.create_sheet("Aggregation")
+agg_sheet = workbook.create_sheet("Aggregation")
 
 ## Add formula to list unique categories, and sum if category matches
 agg_sheet["A1"] = f"=UNIQUE(Sheet!E2:E{ROWS})"
@@ -115,4 +119,11 @@ print(f"Added aggregation\n{DIV}\n")
 
 print(f"Cleaning complete\n{DIV}\n")
 
-workbook.save(OUTPUT_FILE)
+# Build final update template
+fin_sheet = workbook.create_sheet("Final")
+fin_header = ["CATEGORY", "AMOUNT", "ACCOUNT", "BALANCE"]
+for n in range(len(fin_header)):
+    fin_sheet.cell(row = 1, column =  n + 1).value = fin_header[n]
+print(f"Added final template\n{DIV}\n")
+
+workbook.save(WB_NAME)
